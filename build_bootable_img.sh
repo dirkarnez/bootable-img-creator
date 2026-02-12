@@ -40,7 +40,11 @@ dd if=/dev/zero of="$IMAGE_NAME" bs=1M count="$IMAGE_SIZE" status=progress
 
 # Set up loop device
 echo "Setting up loop device..."
+
+# -f: Find the first unused loop device
 LOOP_DEVICE=$(losetup -f)
+
+# -P: --partscan, scan the partition table on a newly created loop device. default is sector size is 512 bytes
 losetup -P "$LOOP_DEVICE" "$IMAGE_NAME"
 
 # Create partition
