@@ -4,7 +4,7 @@ set -e  # Exit on any error
 # Configuration
 NOW=$(date +'%d.%m.%y')
 IMAGE_NAME="my_image_${NOW}.img"
-IMAGE_SIZE_IN_MB=450
+IMAGE_SIZE_IN_MB=10
 MOUNT_POINT="/mnt/my_mount_point"
 LOOP_DEVICE=""
 
@@ -16,13 +16,13 @@ fi
 # Clean up on exit or error
 cleanup() {
   echo "Cleaning up..."
-  if mountpoint -q "$MOUNT_POINT"; then
-    umount "$MOUNT_POINT"
-  fi
+  # if mountpoint -q "$MOUNT_POINT"; then
+  #   umount "$MOUNT_POINT"
+  # fi
   
-  if [ -n "$LOOP_DEVICE" ]; then
-    losetup -d "$MOUNT_POINT"
-  fi
+  # if [ -n "$LOOP_DEVICE" ]; then
+  #   losetup -d "$MOUNT_POINT"
+  # fi
   
   echo "Done."
 }
@@ -37,6 +37,8 @@ echo "Setting up loop device..."
 
 # -f: Find the first unused loop device
 LOOP_DEVICE=$(losetup -f)
+
+echo "****Found first unused loop device $LOOP_DEVICE****"
 
 # -P: --partscan, scan the partition table on a newly created loop device. default is sector size is 512 bytes
 losetup -P "$LOOP_DEVICE" "$IMAGE_NAME"
@@ -53,12 +55,12 @@ p
 w
 EOF
 
-echo "Creating ext2 filesystem..."
-mkfs.ext2 "${LOOP_DEVICE}p1"
+# echo "Creating ext2 filesystem..."
+# mkfs.ext2 "${LOOP_DEVICE}p1"
 
-echo "Mounting filesystem..."
-mkdir -p "$MOUNT_POINT"
-mount "${LOOP_DEVICE}p1" "$MOUNT_POINT"
+# echo "Mounting filesystem..."
+# mkdir -p "$MOUNT_POINT"
+# mount "${LOOP_DEVICE}p1" "$MOUNT_POINT"
 
 
 # Make bootable
@@ -68,6 +70,7 @@ a
 w
 EOF
 
+fdisk -l
 
 # Sync and finish
 echo "Syncing files..."
