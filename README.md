@@ -10,3 +10,4 @@ bootable-img-creator
 
 ### Tools
 - [dirkarnez.github.io/hex-viewer-web](https://dirkarnez.github.io/hex-viewer-web)
+- [dirkarnez/guestfs-tools-playground](https://github.com/dirkarnez/guestfs-tools-playground)
