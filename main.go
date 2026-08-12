@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"io"
-	"os"
-
+	"log"
 	"github.com/diskfs/go-diskfs"
+	"github.com/diskfs/go-diskfs/disk"
 )
 
 /*
@@ -29,33 +27,53 @@ import (
 */
 func main() {
 	// 1. 打開你已經創建好的映像檔（或是新創建的檔案）
-	diskImg, err := diskfs.Open("sdcard.img")
-	if err != nil {
-		panic(err)
-	}
-	defer diskImg.Close()
-
-	// 2. 打開你要寫入的 U-Boot 原始二進位檔
-	uBootFile, err := os.Open("u-boot-sunxi-with-spl.bin")
-	if err != nil {
-		panic(err)
-	}
-	defer uBootFile.Close()
-
-	// 3. 計算你的偏移量（例如 dd seek=8 且 bs=1k，代表 8KB = 8192 位元組）
-	var offset int64 = 8 * 1024 
-
-	// 4. 關鍵步驟：調用 Seek 來移動檔案指標 (whence 0 代表從檔案開頭計算)
-	_, err = diskImg.Seek(offset, 0)
+	var diskSize int64 = 1 * 1024 // 10 KB
+	mydisk, err := diskfs.Create("output.img", diskSize, diskfs.SectorSize4k)
 	if err != nil {
 		panic(err)
 	}
 
-	// 5. 寫入資料：將 U-Boot 內容直接複製進去（此時指標已在 8KB 處）
-	written, err := io.Copy(diskImg, uBootFile)
-	if err != nil {
-		panic(err)
-	}
+	ddWithSeek(mydisk, []byte("Hello, World!!!"), 24)
 
-	fmt.Printf("成功在偏移量 %d 處寫入 %d 位元組的 U-Boot 原始資料\n", offset, written)
+	// // 2. 打開你要寫入的 U-Boot 原始二進位檔
+	// uBootFile, err := os.Open("u-boot-sunxi-with-spl.bin")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer uBootFile.Close()
+
+	// br := bytes.NewReader()
+
+
 }
+
+
+func ddWithSeek(disk *disk.Disk, bytes []byte, offset int64) (n int, err error) {
+	w, err := disk.Backend.Writable()
+	if err != nil {
+		log.Fatalf("backend writable: %v", err)
+	}
+
+	return w.WriteAt(bytes, offset)
+}
+
+
+	// fspec := disk.FilesystemSpec{Partition: 0, FSType: filesystem.TypeSquashfs, VolumeLabel: "label"}
+	// fs, err := mydisk.CreateFilesystem(fspec)
+	// check(err)
+	// defer func() {
+	// 	if err := fs.Close(); err != nil {
+	// 		check(err)
+	// 	}
+	// }()
+	// rw, err := fs.OpenFile("demo.txt", os.O_CREATE|os.O_RDWR)
+	// check(err)
+	// content := []byte("demo")
+	// _, err = rw.Write(content)
+	// check(err)
+	// sqs, ok := fs.(*squashfs.FileSystem)
+	// if !ok {
+	// 	check(fmt.Errorf("not a squashfs filesystem"))
+	// }
+	// err = sqs.Finalize(squashfs.FinalizeOptions{})
+	// check(err)
